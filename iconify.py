@@ -3,16 +3,27 @@ import urllib
 import tempfile
 import shutil
 import os.path
+import json
+import hashlib
 
 import PIL.Image
 
-def iconify_names(usernames):
+def file_hash(filename):
+    with open(filename) as f:
+        return hashlib.md5(f.read()).digest()
+
+def iconify_names(usernames,destdir='.'):
     tmpdir = tempfile.mkdtemp('minecrafticonify')
+
+    if not os.path.exists(destdir):
+        os.mkdirs(destdir)
+
     try:
         for username in usernames:
-            data = download_skin(username)
+            data, code = download_skin(username)
             if data is None:
-                print "Network error for {}, bad username?".format(username)
+                fmt = "Network error for {}, bad username?, code {}"
+                print fmt.format(username, code)
                 continue
 
             imagefile = os.path.join(tmpdir, "{}.png".format(username))
@@ -23,22 +34,35 @@ def iconify_names(usernames):
             with open(imagefile, 'rb') as f:
                 image = iconify(imagefile)
 
-            image.save('{}-icon.png'.format(username))
+            savename = '{}-icon.png'.format(username)
 
-    except Exception as e:
-        print tmpdir
-        raise e
-    else:
+            tempname = os.path.join(tmpdir, savename)
+            destname = os.path.join(destdir, savename)
+
+            image.save(tempname)
+            if os.path.exists(destname):
+                if file_hash(tempname) == file_hash(destname):
+                    # Do nothing
+                    print "{} skin is unchanged.".format(username)
+                    continue
+
+            os.rename(tempname, destname)
+
+            print "{} skin is saved.".format(username)
+
+    finally:
         shutil.rmtree(tmpdir)
 
 def download_skin(username):
     URL = "https://www.minecraft.net/skin/{}.png"
-    conn = urllib.urlopen(URL.format(username).lower())
-    if conn.getcode() in {404,403}:
-        return None
+    conn = urllib.urlopen(URL.format(username))
+    code = conn.getcode()
+    if code in {404,403}:
+        return None, code
+
     data = conn.read()
 
-    return data
+    return data, code
 
 def iconify(file):
     skin = PIL.Image.open(file)
@@ -65,9 +89,25 @@ def iconify(file):
 
 def make_parser():
     p = argparse.ArgumentParser()
-    p.add_argument('usernames',nargs='+')
+    p.add_argument('-d','--destination',default='.')
+    p.add_argument('-f','--locations-file',default=None)
+    p.add_argument('-l','--list-file',default=None)
+    p.add_argument('usernames',nargs='*')
 
     return p
 
 args = make_parser().parse_args()
-iconify_names(args.usernames)
+
+if args.locations_file is None and args.list_file is None:
+    iconify_names(args.usernames, args.destination)
+elif args.locations_file is not None:
+    with open(args.locations_file) as f:
+        data = json.load(f)
+
+    usernames = list(data['players'])
+    iconify_names(usernames, args.destination)
+elif args.list_file is not None:
+    with open(args.list_file) as f:
+        names = f.read().split()
+
+    iconify_names(names, args.destination)
