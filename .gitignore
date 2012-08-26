@@ -92,4 +92,6 @@ nosetests.xml
 .mr.developer.cfg
 
 
-
+# Ignore tar archives
+*.tar
+*.tar.*
