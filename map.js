@@ -62,7 +62,12 @@ function use_locations(locations) {
         // Yes I know it's technically Z, but w/e shut up
         py = (pcoord[0]) + translation[1];
 
-        var player_infodump = [player,[px,py],pcoord,status_]
+        var rnd_x = Math.round(pcoord[0]);
+        var rnd_y = Math.round(pcoord[1]);
+        var rnd_z = Math.round(pcoord[2]);
+
+        var fmt = "%s (%d, %d, %d)";
+        var player_infodump = sprintf(fmt, player, rnd_x, rnd_y, rnd_z);
 
         if ((tx <= px && px <= bx) && (ty <= py && py <= by)) {
 
