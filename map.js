@@ -27,7 +27,7 @@ function debug_clear() {
 }
 
 function set_pins() {
-    $.get("data/locations.json")
+    $.get("var/data/locations.json")
     .success(function(data) {
         use_locations(data);
     })
@@ -86,7 +86,7 @@ function use_locations(locations) {
                 var class_ = ' class="pin online" '
             }
 
-            var tag = '<img' + class_ + style + 'src="icons/map_pin.svg">';
+            var tag = '<img' + class_ + style + 'src="defaults/icons/map_pin.svg">';
 
             $('.pinholder').append(tag);
 
@@ -164,7 +164,7 @@ function fill_viewport() {
             var filename;
             filename = str;
 
-            var tag = '<img class="tile" src="tiles/' + filename + '">';
+            var tag = '<img class="tile" src="var/tiles/' + filename + '">';
 
             $('#mainviewport').append(tag);
         };
@@ -177,7 +177,7 @@ function fill_viewport() {
 
 $(document).ready(function() {
     info("Page ready.");
-    $.get("tiles/allimages.json")
+    $.get("var/tiles/allimages.json")
     .success(function(data) {
         allimages = data;
         use_image_list();
