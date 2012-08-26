@@ -2,7 +2,7 @@ var allimages;
 var in_view;
 
 var TILESIZE = 128;
-var UPDATE_FREQUENCY = 500;
+var UPDATE_FREQUENCY = 125;
 
 var WIDTH = 8;
 var HEIGHT = 4;
