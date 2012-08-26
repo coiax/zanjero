@@ -65,7 +65,6 @@ function use_locations(locations) {
         var player_infodump = [player,[px,py],pcoord,status_]
 
         if ((tx <= px && px <= bx) && (ty <= py && py <= by)) {
-            info(player_infodump);
 
             if (true) {
                 var x = px - tx;
@@ -91,6 +90,9 @@ function use_locations(locations) {
             $('.pinholder').append(tag);
 
 
+        }
+        if (status_ == "online") {
+            info(player_infodump);
         } else {
             error(player_infodump);
         }
