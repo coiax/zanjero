@@ -1,5 +1,6 @@
 var allimages;
 var in_view;
+var translation;
 
 var TILESIZE = 128;
 var UPDATE_FREQUENCY = 125;
@@ -47,8 +48,7 @@ function use_locations(locations) {
     var bx = (bottomright[0] + 1) * TILESIZE;
     var by = (bottomright[1] + 1) * TILESIZE;
 
-    var translation = locations['translation'];
-    var players = locations['players'];
+    var players = locations['agnomen'];
 
     $('.pinholder').empty();
 
@@ -80,8 +80,8 @@ function use_locations(locations) {
             }
 
             // Corrections so the point of the pin is on the coordinate
-            x += -22;
-            y += 10;
+            x += 1;
+            y += 35;
 
             var style = ' style="left:' + x + 'px; top:' + y + 'px;" ';
             if (status_ == "offline") {
@@ -90,7 +90,9 @@ function use_locations(locations) {
                 var class_ = ' class="pin online" '
             }
 
-            var tag = '<img' + class_ + style + 'src="defaults/icons/map_pin.svg">';
+            var src = ' src="var/icons/' + player + '-icon.png" ';
+
+            var tag = '<img' + class_ + style + src + '>';
 
             $('.pinholder').append(tag);
 
@@ -184,6 +186,15 @@ function fill_viewport() {
 
 $(document).ready(function() {
     info("Page ready.");
+    $.get("var/data/translation.json")
+    .success(function(data) {
+        translation = data;
+    })
+    .error(function() {
+        error("Error when downloading translation.");
+        translation = [0,0];
+    });
+
     $.get("var/tiles/allimages.json")
     .success(function(data) {
         allimages = data;
