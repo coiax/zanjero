@@ -1,10 +1,8 @@
-var allimages;
 var translation;
-
 var topleft;
 
 var TILESIZE = 128;
-var UPDATE_FREQUENCY = 125;
+var UPDATE_FREQUENCY = 200;
 
 var mouse_pos = false;
 
@@ -38,15 +36,13 @@ function set_pins() {
 function use_locations(locations) {
     // There are three coordinate systems. The tiles, the mc coordinates,
     // and the actual position on the page
-    var topleft = in_view[0][0];
-    var tx = topleft[0] * TILESIZE;
-    var ty = topleft[1] * TILESIZE;
+    var tx = topleft[0];
+    var ty = topleft[1];
 
-    var bottomrightrow = in_view[in_view.length - 1];
-    var bottomright = bottomrightrow[bottomrightrow.length - 1];
+    var bottomright = get_viewport_br();
 
-    var bx = (bottomright[0] + 1) * TILESIZE;
-    var by = (bottomright[1] + 1) * TILESIZE;
+    var bx = bottomright[0];
+    var by = bottomright[1];
 
     var players = locations['agnomen'];
 
@@ -80,8 +76,8 @@ function use_locations(locations) {
             }
 
             // Corrections so the point of the pin is on the coordinate
-            x += 1;
-            y += 35;
+            x += -8;
+            y += -32;
 
             var style = ' style="left:' + x + 'px; top:' + y + 'px;" ';
             if (status_ == "offline") {
@@ -107,83 +103,6 @@ function use_locations(locations) {
 
 }
 
-function use_image_list() {
-    debug(allimages.length + " images found.");
-    generate_in_view();
-    fill_viewport();
-
-    setInterval(set_pins,UPDATE_FREQUENCY);
-}
-
-function generate_in_view() {
-    in_view = [];
-    var x = 0;
-    var y = 0;
-
-    var initial_x = 15;
-    var initial_y = 58;
-
-
-    max_x = initial_x + WIDTH;
-    max_y = initial_y + HEIGHT;
-
-    for (y = initial_y; y < max_y; y++) {
-        var row = [];
-        for (x = initial_x; x < max_x; x++) {
-            row.push([x,y]);
-        }
-        in_view.push(row);
-    }
-}
-
-function adjust_in_view(adjustment) {
-    dx = adjustment[0];
-    dy = adjustment[1];
-
-    for (var i = 0; i < in_view.length; i++) {
-        row = in_view[i];
-        for (var j = 0; j < row.length; j++) {
-            item = row[j];
-            item[0] = item[0] + dx;
-            item[1] = item[1] + dy;
-        }
-    }
-}
-
-function fill_viewport() {
-    /*
-    <img src="tiles/agnomen-0.0.0.png">
-    <img src="tiles/agnomen-0.1.0.png">
-    <img src="tiles/agnomen-0.2.0.png">
-    <br>
-    <img src="tiles/agnomen-0.0.1.png">
-    <img src="tiles/agnomen-0.1.1.png">
-    <img src="tiles/agnomen-0.2.1.png">
-    */
-
-    $('#mainviewport').empty();
-    $('#mainviewport').append('<div class="pinholder"></div>')
-
-    fmt = "agnomen-0.%d.%d.png";
-    for (i = 0; i < in_view.length; i++) { 
-        row = in_view[i];
-        for (j = 0; j < row.length; j++) {
-            item = row[j];
-            str = sprintf(fmt, item[0], item[1]);
-            var filename;
-            filename = str;
-
-            var tag = '<img class="tile" src="var/tiles/' + filename + '">';
-
-            $('#mainviewport').append(tag);
-        };
-
-        $('#mainviewport').append('<br>');
-    };
-
-
-}
-
 function get_tile(name,x,y) {
     fmt = "var/tiles/%s-0.%d.%d.png";
     return sprintf(fmt, name, x, y);
@@ -196,8 +115,7 @@ function main() {
     $('#mainviewport').empty();
 
     viewport_wh = get_viewport_wh();
-
-    bottomright = [topleft[0] + viewport_wh[0], topleft[1] + viewport_wh[1]];
+    bottomright = get_viewport_br();
 
     tiles_per_side = viewport_wh.map(function(item) {
         return Math.floor(item / TILESIZE) + 3;
@@ -224,10 +142,18 @@ function main() {
         };
     };
 
+    $('#mainviewport').append('<div class="pinholder"></div>')
+
 }
 
 function get_viewport_wh() {
     return [$('#mainviewport').width(), $('#mainviewport').height()];
+}
+
+function get_viewport_br() {
+    viewport_wh = get_viewport_wh();
+    bottomright = [topleft[0] + viewport_wh[0], topleft[1] + viewport_wh[1]];
+    return bottomright;
 }
 
 function handle_mouse_move(event) {
@@ -243,6 +169,7 @@ function handle_mouse_move(event) {
         topleft[0] -= diff_x;
         topleft[1] -= diff_y;
         main();
+        set_pins();
 
         mouse_pos = new_;
     };
@@ -262,13 +189,8 @@ $(document).ready(function() {
         translation = [0,0];
     });
 
-    $.get("var/tiles/allimages.json")
-    .success(function(data) {
-        allimages = data;
-    })
-    .error(function() { error("Error when downloading tile list"); });
-
     main();
+    setInterval(set_pins,UPDATE_FREQUENCY);
 
     $('#mainviewport')
     .mousedown(function(event) {
@@ -288,6 +210,7 @@ $(window).resize(function() {
     //On document resize, do things
     info("Resized: " + get_viewport_wh());
     main();
+    set_pins();
 });
 
 $(document).keydown(function(event) {
@@ -308,5 +231,6 @@ $(document).keydown(function(event) {
         topleft[0] += adj[0]*TILESIZE;
         topleft[1] += adj[1]*TILESIZE;
         main();
+        set_pins();
     }
 });
