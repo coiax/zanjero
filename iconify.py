@@ -89,6 +89,13 @@ def iconify(file):
     final = PIL.Image.new("RGBA",(16,32),(0,0,0,0))
 
     final.paste(head,(4,0))
+    try:
+        final.paste(hat,(4,0), hat) # apparantly, the hat overlays the head
+        # Passing hat a second time uses the alpha for the hat to overlay the
+        # head? So then they're not just stuck with a hat and no head
+    except ValueError:
+        # Doesn't always work, ignore it, move on
+        print "Transparency problem with {}".format(file)
     final.paste(arm,(0,8))
     final.paste(torso,(4,8))
     final.paste(arm,(12,8))
