@@ -17,7 +17,7 @@ kwargs = {
 }
 
 p = argparse.ArgumentParser()
-p.add_argument('varfolder',default='./var')
+p.add_argument('varfolder',default='./var',nargs='?')
 
 args = p.parse_args()
 
