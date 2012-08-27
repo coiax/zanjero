@@ -27,6 +27,16 @@ playersdata = api.call('getPlayers')
 with open(offlinefile) as f:
     worlds = json.load(f)
 
+for world in worlds.copy():
+    for player in worlds[world].copy():
+        for propername in proper_players:
+            if player.lower() == propername.lower():
+                tmp = worlds[world][player]
+                del worlds[world][player]
+                worlds[world][propername] = tmp
+                break
+
+
 for player in playersdata:
     world = player['worldInfo']['name']
 
