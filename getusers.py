@@ -1,9 +1,11 @@
 import MinecraftApi
 
 import os
+import os.path
 import stat
 import json
 import tempfile
+import argparse
 
 kwargs = {
     'host' : 'spikey.ecs.soton.ac.uk',
@@ -14,9 +16,15 @@ kwargs = {
     'autoload_methods': False,
 }
 
-offlinefile = '../var/data/offline.json'
+p = argparse.ArgumentParser()
+p.add_argument('varfolder',default='./var')
 
-with open('../var/players') as f:
+args = p.parse_args()
+
+
+offlinefile = os.path.join(args.varfolder, 'data/offline.json')
+
+with open(os.path.join(args.varfolder, 'players')) as f:
     proper_players = f.read().split()
 
 api = MinecraftApi.MinecraftJsonApi(**kwargs)
@@ -56,7 +64,7 @@ for player in playersdata:
     coord = (x,y,z)
     worlds[world][playername] = {'coord': coord, 'status': 'online'}
 
-dest = '../var/data/locations.json'
+dest = os.path.join(args.varfolder,'data/locations.json')
 
 handle, pathname = tempfile.mkstemp()
 
