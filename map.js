@@ -52,8 +52,8 @@ function use_locations(locations) {
 
     $('.pinholder').empty();
 
-    debug_clear();
-    debug(['topleft',tx,ty,tx/TILESIZE,ty/TILESIZE]);
+    //debug_clear();
+    //debug(['topleft',tx,ty,tx/TILESIZE,ty/TILESIZE]);
 
     for (var player in players) {
         var pcoord = players[player]['coord'];
@@ -99,9 +99,9 @@ function use_locations(locations) {
 
         }
         if (status_ == "online") {
-            info(player_infodump);
+            //info(player_infodump);
         } else {
-            error(player_infodump);
+            //error(player_infodump);
         }
     }
 
