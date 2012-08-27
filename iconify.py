@@ -106,18 +106,19 @@ def make_parser():
 
     return p
 
-args = make_parser().parse_args()
+if __name__=='__main__':
+    args = make_parser().parse_args()
 
-if args.locations_file is None and args.list_file is None:
-    iconify_names(args.usernames, args.destination)
-elif args.locations_file is not None:
-    with open(args.locations_file) as f:
-        data = json.load(f)
+    if args.locations_file is None and args.list_file is None:
+        iconify_names(args.usernames, args.destination)
+    elif args.locations_file is not None:
+        with open(args.locations_file) as f:
+            data = json.load(f)
 
-    usernames = list(data['players'])
-    iconify_names(usernames, args.destination)
-elif args.list_file is not None:
-    with open(args.list_file) as f:
-        names = f.read().split()
+        usernames = list(data['players'])
+        iconify_names(usernames, args.destination)
+    elif args.list_file is not None:
+        with open(args.list_file) as f:
+            names = f.read().split()
 
-    iconify_names(names, args.destination)
+        iconify_names(names, args.destination)
