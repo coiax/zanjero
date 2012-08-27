@@ -1,0 +1,42 @@
+body {
+    background-color: #000;
+}
+h1, h2, h3, p, pre {
+    color: #FFF;
+}
+img.tile {
+}
+img.pin {
+    position: absolute;
+}
+.online {
+    opacity: 1;
+}
+
+.offline {
+    opacity: 0.5;
+    filter: grey;
+}
+div.viewport {
+    overflow: hidden;
+    width: 90%;
+    height: 75%;
+
+    border-style: dotted;
+    border-width: 1px;
+    border-color: #FFF;
+}
+div.pinholder {
+    overflow: hidden;
+
+}
+
+span.error {
+    color: #F00;
+}
+span.info {
+}
+span.debug {
+    color: #00F;
+}
+
