@@ -8,6 +8,8 @@ import hashlib
 
 import PIL.Image
 
+DEFAULT_ICON = "./defaults/icons/default.png"
+
 def file_hash(filename):
     with open(filename) as f:
         return hashlib.md5(f.read()).digest()
@@ -20,10 +22,21 @@ def iconify_names(usernames,destdir='.'):
 
     try:
         for username in usernames:
+            savename = '{}-icon.png'.format(username)
+            tempname = os.path.join(tmpdir, savename)
+            destname = os.path.join(destdir, savename)
+
             data, code = download_skin(username)
+
             if data is None:
-                fmt = "Network error for {}, bad username?, code {}"
+                fmt = "Network error: {}, code {}: default skin used"
                 print fmt.format(username, code)
+                path_to_default_icon = os.path.relpath(DEFAULT_ICON, destdir)
+
+                if os.path.lexists(destname):
+                    os.unlink(destname)
+
+                os.symlink(path_to_default_icon, destname)
                 continue
 
             imagefile = os.path.join(tmpdir, "{}.png".format(username))
@@ -34,10 +47,7 @@ def iconify_names(usernames,destdir='.'):
             with open(imagefile, 'rb') as f:
                 image = iconify(imagefile)
 
-            savename = '{}-icon.png'.format(username)
 
-            tempname = os.path.join(tmpdir, savename)
-            destname = os.path.join(destdir, savename)
 
             image.save(tempname)
             if os.path.exists(destname):
