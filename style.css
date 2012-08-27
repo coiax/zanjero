@@ -19,12 +19,16 @@ img.pin {
 }
 div.viewport {
     overflow: hidden;
-    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    width: 95%;
     height: 75%;
 
     border-style: dotted;
     border-width: 1px;
     border-color: #FFF;
+
+    position: relative;
 }
 div.pinholder {
     overflow: hidden;

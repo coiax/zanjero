@@ -1,12 +1,12 @@
 var allimages;
-var in_view;
 var translation;
+
+var topleft;
 
 var TILESIZE = 128;
 var UPDATE_FREQUENCY = 125;
 
-var WIDTH = 8;
-var HEIGHT = 4;
+var mouse_pos = false;
 
 function debug(thing) {
     _message(thing, "debug");
@@ -184,8 +184,75 @@ function fill_viewport() {
 
 }
 
+function get_tile(name,x,y) {
+    fmt = "var/tiles/%s-0.%d.%d.png";
+    return sprintf(fmt, name, x, y);
+};
+
+function main() {
+    // Everything starts here.
+    var world = "agnomen";
+
+    $('#mainviewport').empty();
+
+    viewport_wh = get_viewport_wh();
+
+    bottomright = [topleft[0] + viewport_wh[0], topleft[1] + viewport_wh[1]];
+
+    tiles_per_side = viewport_wh.map(function(item) {
+        return Math.floor(item / TILESIZE) + 3;
+    });
+
+    first_tile = topleft.map(function(item) {
+        return Math.floor(item / TILESIZE) - 1;
+    });
+
+    var y, x;
+
+    for (y = first_tile[1]; y < first_tile[1] + tiles_per_side[1]; y++) {
+        for (x = first_tile[0]; x < first_tile[0] + tiles_per_side[0]; x++) {
+            var tile_src = get_tile(world,x,y);
+            // Determine absolute coordinates for tile
+            var tile_abscoord = [x*TILESIZE, y*TILESIZE];
+
+            var left = tile_abscoord[0] - topleft[0];
+            var top_ = tile_abscoord[1] - topleft[1];
+
+            var fmt = '<img src="%s" style="position: absolute; left: %dpx; top: %dpx">';
+
+            $('#mainviewport').append(sprintf(fmt, tile_src, left, top_));
+        };
+    };
+
+}
+
+function get_viewport_wh() {
+    return [$('#mainviewport').width(), $('#mainviewport').height()];
+}
+
+function handle_mouse_move(event) {
+    if (mouse_pos === false) {
+        mouse_pos = [event.pageX, event.pageY];
+    } else {
+        old = mouse_pos;
+        new_ = [event.pageX, event.pageY];
+
+        diff_x = new_[0] - old[0];
+        diff_y = new_[1] - old[1];
+
+        topleft[0] -= diff_x;
+        topleft[1] -= diff_y;
+        main();
+
+        mouse_pos = new_;
+    };
+};
+
 $(document).ready(function() {
     info("Page ready.");
+    topleft = [1950, 7474];
+    info(get_viewport_wh());
+
     $.get("var/data/translation.json")
     .success(function(data) {
         translation = data;
@@ -198,10 +265,29 @@ $(document).ready(function() {
     $.get("var/tiles/allimages.json")
     .success(function(data) {
         allimages = data;
-        use_image_list();
     })
     .error(function() { error("Error when downloading tile list"); });
 
+    main();
+
+    $('#mainviewport')
+    .mousedown(function(event) {
+        event.preventDefault();
+        mouse_pos = false;
+        $('#mainviewport').on("mousemove", handle_mouse_move);
+    })
+    .mouseup(function(event) {
+        event.preventDefault();
+        mouse_pos = false;
+        $('#mainviewport').off("mousemove");
+    });
+
+});
+
+$(window).resize(function() {
+    //On document resize, do things
+    info("Resized: " + get_viewport_wh());
+    main();
 });
 
 $(document).keydown(function(event) {
@@ -218,8 +304,9 @@ $(document).keydown(function(event) {
         }
 
         var adj = adjustment[keycode];
-        adjust_in_view(adj);
-        fill_viewport();
-        set_pins();
+
+        topleft[0] += adj[0]*TILESIZE;
+        topleft[1] += adj[1]*TILESIZE;
+        main();
     }
 });
