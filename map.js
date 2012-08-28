@@ -1,10 +1,14 @@
 var translation;
 var topleft;
+var locations;
 
 var TILESIZE = 128;
 var UPDATE_FREQUENCY = 200;
 
 var mouse_pos = false;
+
+// debug things
+var counter = 0;
 
 function debug(thing) {
     _message(thing, "debug");
@@ -26,8 +30,14 @@ function debug_clear() {
 }
 
 function set_pins() {
+    // Debug
+    counter += 1;
+    $('#counter').html(counter);
+    // gubeD
+
     $.get("var/data/locations.json")
     .success(function(data) {
+        locations = data;
         use_locations(data);
     })
     .error(function() { error("Error when downloading locations"); });
@@ -46,8 +56,6 @@ function use_locations(locations) {
 
     var players = locations['agnomen'];
 
-    $('.pinholder').empty();
-
     //debug_clear();
     //debug(['topleft',tx,ty,tx/TILESIZE,ty/TILESIZE]);
 
@@ -65,6 +73,20 @@ function use_locations(locations) {
         var fmt = "%s (%d, %d, %d)";
         var player_infodump = sprintf(fmt, player, rnd_x, rnd_y, rnd_z);
 
+
+        var icon_id = '#icon_' + player;
+
+        if ($(icon_id).length) {
+            // Do nothing, icon already exists.
+        } else {
+            var class_ = 'class="pin"'
+            var src = 'src="var/icons/' + player + '-icon.png"';
+            var id_ = sprintf('id="icon_%s"', player);
+
+            var tag = sprintf('<img %s %s style="display: none" %s>',class_, id_, src);
+            $('.pinholder').append(tag);
+        }
+
         if ((tx <= px && px <= bx) && (ty <= py && py <= by)) {
 
             if (true) {
@@ -79,25 +101,17 @@ function use_locations(locations) {
             x += -8;
             y += -32;
 
-            var style = ' style="left:' + x + 'px; top:' + y + 'px;" ';
-            if (status_ == "offline") {
-                var class_ = ' class="pin offline" '
-            } else if (status_ == "online") {
-                var class_ = ' class="pin online" '
+            var style = sprintf('left:%dpx; top:%dpx;', x, y);
+
+            $(icon_id).attr('style', style);
+
+            if (status_ == "online") {
+                $(icon_id).removeClass("offline").addClass("online");
+            } else if (status_ == "offline") {
+                $(icon_id).removeClass("online").addClass("offline");
             }
-
-            var src = ' src="var/icons/' + player + '-icon.png" ';
-
-            var tag = '<img' + class_ + style + src + '>';
-
-            $('.pinholder').append(tag);
-
-
-        }
-        if (status_ == "online") {
-            //info(player_infodump);
         } else {
-            //error(player_infodump);
+            $(icon_id).attr('style', 'display: none;');
         }
     }
 
@@ -112,7 +126,7 @@ function main() {
     // Everything starts here.
     var world = "agnomen";
 
-    $('#mainviewport').empty();
+    $('.tile').remove();
 
     viewport_wh = get_viewport_wh();
     bottomright = get_viewport_br();
@@ -136,13 +150,12 @@ function main() {
             var left = tile_abscoord[0] - topleft[0];
             var top_ = tile_abscoord[1] - topleft[1];
 
-            var fmt = '<img src="%s" style="position: absolute; left: %dpx; top: %dpx">';
+            var fmt = '<img class="tile" src="%s" style="position: absolute; left: %dpx; top: %dpx">';
 
             $('#mainviewport').append(sprintf(fmt, tile_src, left, top_));
         };
     };
 
-    $('#mainviewport').append('<div class="pinholder"></div>')
 
 }
 

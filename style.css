@@ -5,9 +5,11 @@ h1, h2, h3, p, pre {
     color: #FFF;
 }
 img.tile {
+    z-index: 1;
 }
 img.pin {
     position: absolute;
+    z-index: 2;
 }
 .online {
     opacity: 1;
