@@ -6,6 +6,7 @@ import stat
 import json
 import tempfile
 import argparse
+import hashlib
 
 kwargs = {
     'host' : 'spikey.ecs.soton.ac.uk',
@@ -18,8 +19,11 @@ kwargs = {
 
 p = argparse.ArgumentParser()
 p.add_argument('varfolder',default='./var',nargs='?')
+p.add_argument('-H','--host',default='spikey.ecs.soton.ac.uk')
 
 args = p.parse_args()
+
+kwargs['host'] = args.host
 
 
 offlinefile = os.path.join(args.varfolder, 'data/offline.json')
@@ -73,4 +77,17 @@ os.chmod(pathname, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
 with open(pathname, 'w') as w:
     json.dump(worlds, w, indent=1)
 
-os.rename(pathname, dest)
+rename = True
+
+if os.path.exists(dest):
+    with open(pathname) as f1, open(dest) as f2:
+        h1 = hashlib.md5(f1.read()).digest()
+        h2 = hashlib.md5(f2.read()).digest()
+
+    if h1 == h2:
+        rename = False
+
+if rename:
+    os.rename(pathname, dest)
+else:
+    os.unlink(pathname)
