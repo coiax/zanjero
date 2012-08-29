@@ -202,9 +202,26 @@ function handle_mouse_move(event) {
 function set_zoom(newzoom) {
     var oldzoom = zoom;
     var current_topleft = topleft;
+    var current_bottomright = get_viewport_br();
 
-    new_topleft = [topleft[0] * Math.pow(2,oldzoom - newzoom),
-                topleft[1] * Math.pow(2,oldzoom - newzoom)];
+    var widthheight = get_viewport_wh();
+
+    var midpoint = [];
+    for (var i=0; i < current_topleft.length; i++) {
+        midpoint.push((current_topleft[i] + current_bottomright[i]) / 2)
+    }
+
+    // We need to keep this midpoint when we're zooming
+    var zoom_difference = oldzoom - newzoom;
+    var zoom_diff_power = Math.pow(2, zoom_difference);
+
+    midpoint[0] *= zoom_diff_power;
+    midpoint[1] *= zoom_diff_power;
+
+    // Now we have the new midpoint, we can determine the new topleft
+
+    new_topleft = [midpoint[0] - (widthheight[0]/2),
+                midpoint[1] - (widthheight[1]/2)];
 
     topleft = new_topleft;
     zoom = newzoom;
