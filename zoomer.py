@@ -98,9 +98,14 @@ def squash(components):
     return smallbig
 
 
-
+def make_parser():
+    p = argparse.ArgumentParser()
+    p.add_argument('tilesdir')
+    p.add_argument('-w','--world',default='agnomen')
+    return p
 
 if __name__=='__main__':
+    args = make_parser().parse_args()
     for i in range(6):
-        L = list_images('./var/tiles')
-        create_zoom(L, 'agnomen', i, './var/tiles')
+        L = list_images(args.tilesdir)
+        create_zoom(L, args.world, i, args.tilesdir)
