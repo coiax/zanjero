@@ -48,6 +48,8 @@ for world in worlds.copy():
                 worlds[world][propername] = tmp
                 break
 
+player_set = set()
+duplicate_players = set()
 
 for player in playersdata:
     world = player['worldInfo']['name']
@@ -56,6 +58,9 @@ for player in playersdata:
         worlds[world] = {}
 
     playername = player['name']
+    if playername in player_set:
+        duplicate_players.add(playername)
+    player_set.add(playername)
 
     for propername in proper_players:
         if propername.lower() == playername.lower():
@@ -67,6 +72,24 @@ for player in playersdata:
     z = location['z']
     coord = (x,y,z)
     worlds[world][playername] = {'coord': coord, 'status': 'online'}
+
+for playername in duplicate_players:
+    entries = []
+    for world in worlds:
+        if playername in world:
+            entries.append((world,world[playername]))
+
+    # Two offline entries will resolve in an arbitary order
+    # Two online entries, one will clobber the other
+    # THERE SHOULDN'T BE TWO ONLINE ENTRIES
+    seen_online = False
+    while len(entries):
+        world, player_attr = entries.pop()
+        if player_attr['status'] == 'online' and not seen_online:
+            seen_online = True
+            continue
+        else:
+            del worlds[world][playername]
 
 dest = os.path.join(args.varfolder,'data/locations.json')
 
