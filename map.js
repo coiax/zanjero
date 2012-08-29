@@ -279,7 +279,7 @@ $(document).ready(function() {
     info("Page ready.");
 
     // True to display debug
-    if (true) {
+    if (false) {
         $('.debughidden').removeClass('debughidden');
     };
 
