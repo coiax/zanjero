@@ -5,6 +5,8 @@ var locations;
 var TILESIZE = 128;
 var UPDATE_FREQUENCY = 200;
 
+var zoom = 2;
+
 var mouse_pos = false;
 
 // debug things
@@ -43,12 +45,18 @@ function set_pins() {
     .error(function() { error("Error when downloading locations"); });
 }
 
+function translation_zoom(translation, zoom) {
+
+}
+
 function use_locations(locations) {
     // There are three coordinate systems. The tiles, the mc coordinates,
     // and the actual position on the page
+    var zoompower = Math.pow(2, zoom);
     var tx = topleft[0];
     var ty = topleft[1];
 
+    var widthheight = get_viewport_wh();
     var bottomright = get_viewport_br();
 
     var bx = bottomright[0];
@@ -62,9 +70,9 @@ function use_locations(locations) {
     for (var player in players) {
         var pcoord = players[player]['coord'];
         var status_ = players[player]['status'];
-        px = (pcoord[2]*-1) + translation[0];
+        px = ((pcoord[2]*-1) + translation[0]) / zoompower;
         // Yes I know it's technically Z, but w/e shut up
-        py = (pcoord[0]) + translation[1];
+        py = ((pcoord[0]) + translation[1]) / zoompower;
 
         var rnd_x = Math.round(pcoord[0]);
         var rnd_y = Math.round(pcoord[1]);
@@ -117,9 +125,9 @@ function use_locations(locations) {
 
 }
 
-function get_tile(name,x,y) {
-    fmt = "var/tiles/%s-0.%d.%d.png";
-    return sprintf(fmt, name, x, y);
+function get_tile(name,x,y,zoom) {
+    fmt = "var/tiles/%s-%d.%d.%d.png";
+    return sprintf(fmt, name, zoom, x, y);
 };
 
 function main() {
@@ -128,7 +136,6 @@ function main() {
 
     $('.tile').remove();
 
-    viewport_wh = get_viewport_wh();
     bottomright = get_viewport_br();
 
     tiles_per_side = viewport_wh.map(function(item) {
@@ -136,19 +143,22 @@ function main() {
     });
 
     first_tile = topleft.map(function(item) {
-        return Math.floor(item / TILESIZE) - 1;
+        return Math.floor(item / (TILESIZE)) - 1;
     });
 
     var y, x;
 
     for (y = first_tile[1]; y < first_tile[1] + tiles_per_side[1]; y++) {
         for (x = first_tile[0]; x < first_tile[0] + tiles_per_side[0]; x++) {
-            var tile_src = get_tile(world,x,y);
+            var tile_src = get_tile(world,x,y,zoom);
             // Determine absolute coordinates for tile
-            var tile_abscoord = [x*TILESIZE, y*TILESIZE];
+            var zoompower = Math.pow(2, zoom)
+            var tile_abscoord = [
+                x*TILESIZE,
+                y*TILESIZE];
 
-            var left = tile_abscoord[0] - topleft[0];
-            var top_ = tile_abscoord[1] - topleft[1];
+            var left = (tile_abscoord[0] - topleft[0]);
+            var top_ = (tile_abscoord[1] - topleft[1]);
 
             var fmt = '<img class="tile" src="%s" style="position: absolute; left: %dpx; top: %dpx">';
 
@@ -165,7 +175,8 @@ function get_viewport_wh() {
 
 function get_viewport_br() {
     viewport_wh = get_viewport_wh();
-    bottomright = [topleft[0] + viewport_wh[0], topleft[1] + viewport_wh[1]];
+    bottomright = [topleft[0] + viewport_wh[0],
+                topleft[1] + viewport_wh[1]];
     return bottomright;
 }
 
@@ -188,9 +199,32 @@ function handle_mouse_move(event) {
     };
 };
 
+function set_zoom(newzoom) {
+    var oldzoom = zoom;
+    var current_topleft = topleft;
+
+    new_topleft = [topleft[0] * Math.pow(2,oldzoom - newzoom),
+                topleft[1] * Math.pow(2,oldzoom - newzoom)];
+
+    topleft = new_topleft;
+    zoom = newzoom;
+
+    main();
+    set_pins();
+
+};
+
 $(document).ready(function() {
     info("Page ready.");
+    var zoompower = Math.pow(2, zoom);
+
     topleft = [1950, 7474];
+
+    set_zoom(0); // starting zoom
+
+    topleft[0] /= zoompower;
+    topleft[1] /= zoompower;
+
     info(get_viewport_wh());
 
     $.get("var/data/translation.json")
