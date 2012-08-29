@@ -1,4 +1,4 @@
-var translation = [0,0];
+var translation = {};
 var topleft;
 var locations;
 
@@ -6,6 +6,7 @@ var TILESIZE = 128;
 var UPDATE_FREQUENCY = 200;
 
 var zoom = 0;
+var world;
 
 var mouse_pos = false;
 
@@ -62,64 +63,76 @@ function use_locations(locations) {
     var bx = bottomright[0];
     var by = bottomright[1];
 
-    var players = locations['agnomen'];
+    var players = locations[world];
 
     //debug_clear();
     //debug(['topleft',tx,ty,tx/TILESIZE,ty/TILESIZE]);
+    //
+    for (var w in locations) {
 
-    for (var player in players) {
-        var pcoord = players[player]['coord'];
-        var status_ = players[player]['status'];
-        px = ((pcoord[2]*-1) + translation[0]) / zoompower;
-        // Yes I know it's technically Z, but w/e shut up
-        py = ((pcoord[0]) + translation[1]) / zoompower;
-
-        var rnd_x = Math.round(pcoord[0]);
-        var rnd_y = Math.round(pcoord[1]);
-        var rnd_z = Math.round(pcoord[2]);
-
-        var fmt = "%s (%d, %d, %d)";
-        var player_infodump = sprintf(fmt, player, rnd_x, rnd_y, rnd_z);
-
-
-        var icon_id = '#icon_' + player;
-
-        if ($(icon_id).length) {
-            // Do nothing, icon already exists.
-        } else {
-            var class_ = 'class="pin"'
-            var src = 'src="var/icons/' + player + '-icon.png"';
-            var id_ = sprintf('id="icon_%s"', player);
-
-            var tag = sprintf('<img %s %s style="display: none" %s>',class_, id_, src);
-            $('.pinholder').append(tag);
+        if (!(w in translation)) {
+            // No point putting players on the map if we don't know where
+            // they are relative to anything.
+            continue;
         }
 
-        if ((tx <= px && px <= bx) && (ty <= py && py <= by)) {
+        for (var player in locations[w]) {
+            var in_current_world = (w == world);
+            var pcoord = locations[w][player]['coord'];
+            var status_ = locations[w][player]['status'];
+            px = ((pcoord[2]*-1) + translation[w][0]) / zoompower;
+            // Yes I know it's technically Z, but w/e shut up
+            py = ((pcoord[0]) + translation[w][1]) / zoompower;
 
-            if (true) {
-                var x = px - tx;
-                var y = py - ty;
+            var rnd_x = Math.round(pcoord[0]);
+            var rnd_y = Math.round(pcoord[1]);
+            var rnd_z = Math.round(pcoord[2]);
+
+            var fmt = "%s (%d, %d, %d)";
+            var player_infodump = sprintf(fmt, player, rnd_x, rnd_y, rnd_z);
+
+
+            var icon_id = '#icon_' + player;
+
+            if ($(icon_id).length) {
+                // Do nothing, icon already exists.
             } else {
-                var x = 0;
-                var y = 0;
+                var class_ = 'class="pin"'
+                var src = 'src="var/icons/' + player + '-icon.png"';
+                var id_ = sprintf('id="icon_%s"', player);
+
+                var tag = sprintf('<img %s %s style="display: none" %s>',class_, id_, src);
+                $('.pinholder').append(tag);
             }
 
-            // Corrections so the point of the pin is on the coordinate
-            x += -8;
-            y += -32;
+            if ((tx <= px && px <= bx) &&
+                    (ty <= py && py <= by) &&
+                    in_current_world) {
 
-            var style = sprintf('left:%dpx; top:%dpx;', x, y);
+                if (true) {
+                    var x = px - tx;
+                    var y = py - ty;
+                } else {
+                    var x = 0;
+                    var y = 0;
+                }
 
-            $(icon_id).attr('style', style);
+                // Corrections so the point of the pin is on the coordinate
+                x += -8;
+                y += -32;
 
-            if (status_ == "online") {
-                $(icon_id).removeClass("offline").addClass("online");
-            } else if (status_ == "offline") {
-                $(icon_id).removeClass("online").addClass("offline");
+                var style = sprintf('left:%dpx; top:%dpx;', x, y);
+
+                $(icon_id).attr('style', style);
+
+                if (status_ == "online") {
+                    $(icon_id).removeClass("offline").addClass("online");
+                } else if (status_ == "offline") {
+                    $(icon_id).removeClass("online").addClass("offline");
+                }
+            } else {
+                $(icon_id).attr('style', 'display: none;');
             }
-        } else {
-            $(icon_id).attr('style', 'display: none;');
         }
     }
 
@@ -132,8 +145,6 @@ function get_tile(name,x,y,zoom) {
 
 function main() {
     // Everything starts here.
-    var world = "agnomen";
-
     $('.tile').remove();
 
     bottomright = get_viewport_br();
@@ -204,8 +215,6 @@ function set_zoom(newzoom) {
     var current_topleft = topleft;
     var current_bottomright = get_viewport_br();
 
-    var widthheight = get_viewport_wh();
-
     var midpoint = [];
     for (var i=0; i < current_topleft.length; i++) {
         midpoint.push((current_topleft[i] + current_bottomright[i]) / 2)
@@ -219,12 +228,47 @@ function set_zoom(newzoom) {
     midpoint[1] *= zoom_diff_power;
 
     // Now we have the new midpoint, we can determine the new topleft
+    zoom = newzoom;
+
+    topleft = get_topleft_from_midpoint(midpoint);
+
+    main();
+    set_pins();
+};
+
+function get_topleft_from_midpoint(midpoint) {
+    var widthheight = get_viewport_wh();
 
     new_topleft = [midpoint[0] - (widthheight[0]/2),
                 midpoint[1] - (widthheight[1]/2)];
 
-    topleft = new_topleft;
-    zoom = newzoom;
+    return new_topleft;
+};
+
+function set_world(newworld) {
+    // A whole new world
+    // A new fantastic point of view
+    // No one to tell us no or where to go
+    // Or say we're only dreaming
+
+    world = newworld;
+
+    // Reset zoom to 0
+    zoom = 0;
+    $('#z0').prop('checked', true);
+
+    // We'll centre the new world on (0,0) in MC coord
+    debug(translation);
+    var midpoint = translation[newworld];
+
+    if (midpoint != undefined) {
+        topleft = get_topleft_from_midpoint(midpoint);
+    } else {
+        // FALL BACK TO THE HILLS
+        topleft = [0,0];
+        error("No translation found for " + world);
+        // (they're coming from the hills)
+    };
 
     main();
     set_pins();
@@ -235,7 +279,7 @@ $(document).ready(function() {
     info("Page ready.");
 
     // True to display debug
-    if (false) {
+    if (true) {
         $('.debughidden').removeClass('debughidden');
     };
 
@@ -243,12 +287,16 @@ $(document).ready(function() {
     $.get("var/data/translation.json")
     .success(function(data) {
         translation = data;
+        got_translation();
     })
     .error(function() {
         error("Error when downloading translation.");
-        translation = [0,0];
+        translation = {};
+        got_translation();
     });
+});
 
+function got_translation() {
     var zoompower = Math.pow(2, zoom);
 
     topleft = [1950, 7474];
@@ -256,9 +304,18 @@ $(document).ready(function() {
     set_zoom(0); // starting zoom
     $('#z0').prop('checked', true);
 
+    // starting world is agnomen
+    set_world('agnomen');
+    $('#w0').prop('checked', true);
+
     $('input[type=radio][name=zoom]').change(function(event) {
         var val = $('input[type=radio][name=zoom]:checked').val();
         set_zoom(parseInt(val));
+    });
+
+    $('input[type=radio][name=world]').change(function(event) {
+        var val = $('input[type=radio][name=world]:checked').val();
+        set_world(val);
     });
 
     topleft[0] /= zoompower;
@@ -282,7 +339,7 @@ $(document).ready(function() {
         $('#mainviewport').off("mousemove");
     });
 
-});
+};
 
 $(window).resize(function() {
     //On document resize, do things
