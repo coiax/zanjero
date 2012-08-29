@@ -136,6 +136,20 @@ function use_locations(locations) {
         }
     }
 
+    $(".onlineicons").empty();
+
+    for (var worldname in locations) {
+        var world = locations[worldname];
+        for (var playername in world) {
+            var player = world[playername];
+            if (player['status'] == "online") {
+                var fmt = '<img src="var/icons/%s-icon.png" class="statuspin">';
+                var tag = sprintf(fmt, playername);
+                $('#' + worldname + '-online').append(tag);
+            };
+        };
+    };
+
 }
 
 function get_tile(name,x,y,zoom) {
