@@ -101,6 +101,6 @@ def squash(components):
 
 
 if __name__=='__main__':
-    L = list_images('./var/tiles')
     for i in range(6):
+        L = list_images('./var/tiles')
         create_zoom(L, 'agnomen', i, './var/tiles')
