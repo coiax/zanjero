@@ -128,6 +128,11 @@ function use_locations(locations) {
                 var fmt = '<img class="statuspin" src="var/icons/%s-icon.png" %s %s>';
                 var tag = sprintf(fmt, player, id_, style);
                 $('span#' + worldname + '-online').append(tag);
+
+
+                $('#onlineicon_' + player).click(function() {
+                    focus_on_player($(this).data('playername'));
+                }).data('playername', player);
             }
 
             if ((tx <= px && px <= bx) &&
@@ -295,6 +300,38 @@ function set_world(newworld) {
         // (they're coming from the hills)
     };
 
+    main();
+    set_pins();
+
+};
+
+function focus_on_player(playername) {
+    // Determine worldname
+    var selected_worldname;
+    for (worldname in locations) {
+        if (playername in locations[worldname]) {
+            selected_worldname = worldname;
+            break;
+        };
+    };
+
+    if (selected_worldname != undefined) {
+        var selected_world = locations[selected_worldname];
+
+    };
+
+    // Determine the abscoords of that player
+    var pcoord = selected_world[playername]['coord'];
+    var world_translation = translation[selected_worldname];
+
+    var zoompower = Math.pow(2, zoom);
+
+    var px = ((pcoord[2]*-1) + world_translation[0]) / zoompower;
+        // Yes I know it's technically Z, but w/e shut up
+    var py = ((pcoord[0]) + world_translation[1]) / zoompower;
+
+    set_world(selected_worldname);
+    topleft = get_topleft_from_midpoint([px,py]);
     main();
     set_pins();
 
