@@ -37,30 +37,30 @@ playersdata = api.call('getPlayers')
 
 # Get the offline data, so we can merge with it
 with open(offlinefile) as f:
-    worlds = json.load(f)
+    offline_worlds = json.load(f)
 
-for world in worlds.copy():
-    for player in worlds[world].copy():
+# In the offline data, the case is off in the playernames
+# Fix this
+for world in offline_worlds.copy():
+    for player in offline_worlds[world].copy():
         for propername in proper_players:
             if player.lower() == propername.lower():
-                tmp = worlds[world][player]
-                del worlds[world][player]
-                worlds[world][propername] = tmp
+                tmp = offline_worlds[world][player]
+                del offline_worlds[world][player]
+                offline_worlds[world][propername] = tmp
                 break
 
-player_set = set()
-duplicate_players = set()
+online_worlds = {}
+online_players = set()
 
 for player in playersdata:
     world = player['worldInfo']['name']
 
-    if world not in worlds:
-        worlds[world] = {}
+    if world not in online_worlds:
+        online_worlds[world] = {}
 
     playername = player['name']
-    if playername in player_set:
-        duplicate_players.add(playername)
-    player_set.add(playername)
+    online_players.add(playername)
 
     for propername in proper_players:
         if propername.lower() == playername.lower():
@@ -71,25 +71,20 @@ for player in playersdata:
     y = location['y']
     z = location['z']
     coord = (x,y,z)
-    worlds[world][playername] = {'coord': coord, 'status': 'online'}
+    online_worlds[world][playername] = {'coord': coord, 'status': 'online'}
 
-for playername in duplicate_players:
-    entries = []
-    for world in worlds:
-        if playername in world:
-            entries.append((world,world[playername]))
+for online_player in online_players:
+    for worldname in offline_worlds:
+        if online_player in offline_worlds[worldname]:
+            del offline_worlds[worldname][online_player]
 
-    # Two offline entries will resolve in an arbitary order
-    # Two online entries, one will clobber the other
-    # THERE SHOULDN'T BE TWO ONLINE ENTRIES
-    seen_online = False
-    while len(entries):
-        world, player_attr = entries.pop()
-        if player_attr['status'] == 'online' and not seen_online:
-            seen_online = True
-            continue
-        else:
-            del worlds[world][playername]
+for worldname in online_worlds:
+    if worldname in offline_worlds:
+        offline_worlds[worldname].update(online_worlds[worldname])
+    else:
+        offline_worlds[worldname] = online_worlds[worldname]
+
+worlds = offline_worlds
 
 dest = os.path.join(args.varfolder,'data/locations.json')
 
