@@ -10,12 +10,24 @@
     </head>
     <body>
 
-    <h1>Zanjero Map Testing<span id="counter"></span></h1>
+    <h1>Zanjero Map Testing<span id="counter" class="debughidden"></span></h1>
     <div class="viewport" id="mainviewport">
         <div class="pinholder"></div>
             <!-- Will be populated via javascript -->
-    </div>
-    <pre id="debugdump"></div>
+        </div>
+    <form name="zoomform">
+            Zoom
+            <input type="radio" name="zoom" value="0" id="z0">
+            <label class="choice">0</label>
+            <input type="radio" name="zoom" value="1" id="z1">
+            <label class="choice">1</label>
+            <input type="radio" name="zoom" value="2" id="z2">
+            <label class="choice">2</label>
+            <input type="radio" name="zoom" value="3" id="z3">
+            <label class="choice">3</label>
+    </form>
+
+    <pre id="debugdump" class="debughidden"></div>
 
     </body>
 </html>

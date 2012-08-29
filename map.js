@@ -1,11 +1,11 @@
-var translation;
+var translation = [0,0];
 var topleft;
 var locations;
 
 var TILESIZE = 128;
 var UPDATE_FREQUENCY = 200;
 
-var zoom = 2;
+var zoom = 0;
 
 var mouse_pos = false;
 
@@ -216,16 +216,12 @@ function set_zoom(newzoom) {
 
 $(document).ready(function() {
     info("Page ready.");
-    var zoompower = Math.pow(2, zoom);
 
-    topleft = [1950, 7474];
+    // True to display debug
+    if (false) {
+        $('.debughidden').removeClass('debughidden');
+    };
 
-    set_zoom(0); // starting zoom
-
-    topleft[0] /= zoompower;
-    topleft[1] /= zoompower;
-
-    info(get_viewport_wh());
 
     $.get("var/data/translation.json")
     .success(function(data) {
@@ -235,6 +231,24 @@ $(document).ready(function() {
         error("Error when downloading translation.");
         translation = [0,0];
     });
+
+    var zoompower = Math.pow(2, zoom);
+
+    topleft = [1950, 7474];
+
+    set_zoom(0); // starting zoom
+    $('#z0').prop('checked', true);
+
+    $('input[type=radio][name=zoom]').change(function(event) {
+        var val = $('input[type=radio][name=zoom]:checked').val();
+        set_zoom(parseInt(val));
+    });
+
+    topleft[0] /= zoompower;
+    topleft[1] /= zoompower;
+
+    info(get_viewport_wh());
+
 
     main();
     setInterval(set_pins,UPDATE_FREQUENCY);
