@@ -68,21 +68,21 @@ function use_locations(locations) {
     //debug_clear();
     //debug(['topleft',tx,ty,tx/TILESIZE,ty/TILESIZE]);
     //
-    for (var w in locations) {
+    for (var worldname in locations) {
 
-        if (!(w in translation)) {
+        if (!(worldname in translation)) {
             // No point putting players on the map if we don't know where
             // they are relative to anything.
             continue;
         }
 
-        for (var player in locations[w]) {
-            var in_current_world = (w == world);
-            var pcoord = locations[w][player]['coord'];
-            var status_ = locations[w][player]['status'];
-            px = ((pcoord[2]*-1) + translation[w][0]) / zoompower;
+        for (var player in locations[worldname]) {
+            var in_current_world = (worldname == world);
+            var pcoord = locations[worldname][player]['coord'];
+            var status_ = locations[worldname][player]['status'];
+            px = ((pcoord[2]*-1) + translation[worldname][0]) / zoompower;
             // Yes I know it's technically Z, but w/e shut up
-            py = ((pcoord[0]) + translation[w][1]) / zoompower;
+            py = ((pcoord[0]) + translation[worldname][1]) / zoompower;
 
             var rnd_x = Math.round(pcoord[0]);
             var rnd_y = Math.round(pcoord[1]);
@@ -93,6 +93,7 @@ function use_locations(locations) {
 
 
             var icon_id = '#icon_' + player;
+            var onlineicon_id = '#onlineicon_' + player;
 
             if ($(icon_id).length) {
                 // Do nothing, icon already exists.
@@ -103,6 +104,30 @@ function use_locations(locations) {
 
                 var tag = sprintf('<img %s %s style="display: none" %s>',class_, id_, src);
                 $('.pinholder').append(tag);
+            }
+
+            var onlinespan = '#' + worldname + '-online';
+
+            if ($(onlineicon_id).length) {
+                // icon exists
+                if ($(sprintf('%s %s', onlinespan,onlineicon_id)).length) {
+                    // icon is inside current world
+                } else {
+                    var elem = $(onlineicon_id).detach();
+                    elem.appendTo(onlinespan);
+                }
+
+                if (status_ == 'online') {
+                    $(onlineicon_id).attr('style', "");
+                } else {
+                    $(onlineicon_id).attr('style', "display: none;");
+                }
+            } else {
+                var id_ = sprintf('id="onlineicon_%s"', player);
+                var style = 'style="display: none"';
+                var fmt = '<img class="statuspin" src="var/icons/%s-icon.png" %s %s>';
+                var tag = sprintf(fmt, player, id_, style);
+                $('span#' + worldname + '-online').append(tag);
             }
 
             if ((tx <= px && px <= bx) &&
@@ -135,20 +160,6 @@ function use_locations(locations) {
             }
         }
     }
-
-    $(".onlineicons").empty();
-
-    for (var worldname in locations) {
-        var world = locations[worldname];
-        for (var playername in world) {
-            var player = world[playername];
-            if (player['status'] == "online") {
-                var fmt = '<img src="var/icons/%s-icon.png" class="statuspin">';
-                var tag = sprintf(fmt, playername);
-                $('#' + worldname + '-online').append(tag);
-            };
-        };
-    };
 
 }
 
