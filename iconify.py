@@ -8,7 +8,7 @@ import hashlib
 
 import PIL.Image
 
-DEFAULT_ICON = "./defaults/icons/default.png"
+DEFAULT_ICON = "/var/www/zanjero/defaults/icons/default.png"
 
 def file_hash(filename):
     with open(filename) as f:
