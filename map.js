@@ -330,7 +330,16 @@ function focus_on_player(playername) {
         // Yes I know it's technically Z, but w/e shut up
     var py = ((pcoord[0]) + world_translation[1]) / zoompower;
 
+    var previous_world = world;
+    var previous_zoom = zoom;
+
     set_world(selected_worldname);
+
+    if (previous_world == selected_worldname) {
+        set_zoom(previous_zoom);
+    };
+
+
     $(sprintf('input[value=%s]', selected_worldname)).prop('checked',true);
     topleft = get_topleft_from_midpoint([px,py]);
     main();
