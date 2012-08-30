@@ -331,6 +331,7 @@ function focus_on_player(playername) {
     var py = ((pcoord[0]) + world_translation[1]) / zoompower;
 
     set_world(selected_worldname);
+    $(sprintf('input[value=%s]', selected_worldname)).prop('checked',true);
     topleft = get_topleft_from_midpoint([px,py]);
     main();
     set_pins();
