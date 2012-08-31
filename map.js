@@ -259,6 +259,7 @@ function set_zoom(newzoom) {
 
     // Now we have the new midpoint, we can determine the new topleft
     zoom = newzoom;
+    $('#z' + newzoom).prop('checked', true);
 
     topleft = get_topleft_from_midpoint(midpoint);
 
