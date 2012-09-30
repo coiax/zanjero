@@ -106,7 +106,7 @@ def iconify(file):
 
 def make_parser():
     p = argparse.ArgumentParser()
-    p.add_argument('-d','--destination',default='.')
+    p.add_argument('-d','--destination',default='./var/icons/')
     p.add_argument('-f','--locations-file',default=None)
     p.add_argument('-l','--list-file',default=None)
     p.add_argument('usernames',nargs='*')
@@ -127,5 +127,7 @@ if __name__=='__main__':
     elif args.list_file is not None:
         with open(args.list_file) as f:
             names = f.read().split()
+            # Remove duplicates
+            names = set(names)
 
         iconify_names(names, args.destination)
