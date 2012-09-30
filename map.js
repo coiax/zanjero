@@ -1,6 +1,7 @@
 var translation = {};
 var topleft;
 var locations;
+var display_offline = true;
 
 var TILESIZE = 128;
 var UPDATE_FREQUENCY = 200;
@@ -166,6 +167,11 @@ function use_locations(locations) {
         }
     }
 
+    if (display_offline) {
+        $('.offline').removeClass('debughidden');
+    } else {
+        $('.offline').addClass('debughidden');
+    }
 }
 
 function get_tile(name,x,y,zoom) {
@@ -389,6 +395,16 @@ function got_translation() {
     $('input[type=radio][name=world]').change(function(event) {
         var val = $('input[type=radio][name=world]:checked').val();
         set_world(val);
+    });
+
+    $('#hidebox').change(function(event) {
+        if ($('#hidebox').attr('checked') == 'checked') {
+            // hide offline
+            display_offline = false;
+        } else {
+            // don't hide offline
+            display_offline = true;
+        }
     });
 
     topleft[0] /= zoompower;
