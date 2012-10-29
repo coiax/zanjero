@@ -45,7 +45,11 @@ def iconify_names(usernames,destdir='.'):
                 f.write(data)
 
             with open(imagefile, 'rb') as f:
-                image = iconify(imagefile)
+                try:
+                    image = iconify(imagefile)
+                except IOError:
+                    print "IO error with {}".format(imagefile)
+                    continue
 
 
 
